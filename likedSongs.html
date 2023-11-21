@@ -204,7 +204,6 @@
                     likedSongList.innerHTML = '';
                     querySnapshot.forEach((doc) => {
                         const songData = doc.data();
-
                         const songItem = document.createElement('li');
                         songItem.innerHTML = `
                         <div class="card-container">

@@ -448,5 +448,53 @@
         return userLikedSongIds && userLikedSongIds.includes(songData.id);
         
     }
+    document.addEventListener('DOMContentLoaded', () => {
+        // Your existing code
+
+        // New function to get song IDs in order
+        async function getSongIdsInOrder() {
+            const querySnapshot = await getDocs(songsCollection);
+            const songIds = [];
+            querySnapshot.forEach((doc) => {
+                songIds.push(doc.id);
+            });
+            return songIds;
+        }
+
+        // Variable to keep track of the current song index
+        let currentSongIndex = 0;
+
+        // Event listener for the "Next" icon
+        document.addEventListener('click', async (e) => {
+            if (e.target.id === 'next') {
+                const songIdsInOrder = await getSongIdsInOrder();
+                currentSongIndex = (currentSongIndex + 1) % songIdsInOrder.length;
+                const nextSongId = songIdsInOrder[currentSongIndex];
+                const nextSongDoc = await getDoc(doc(songsCollection, nextSongId));
+                const nextSongData = nextSongDoc.data();
+
+                clearSongList();
+                const songItem = document.createElement('li');
+                songItem.innerHTML = `
+                    <div class="card-container">
+                        <div class="card">
+                            <i class='bx bxs-heart like-icon' data-song-id="${nextSongId}" id="iconLike"></i>
+                            <img src="${nextSongData.imageUrl}" alt="Song Image">
+                            <strong>${nextSongData.title}</strong>
+                            <audio controls>
+                                <source src="${nextSongData.audioUrl}" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                            <i class='bx bx-skip-next' id="next"></i>
+                        </div>
+                    </div>
+                `;
+                songList.appendChild(songItem);
+
+                // Update the currentSongIndex
+                currentSongIndex++;
+            }
+        });
+    });
 </script>
 </html>
