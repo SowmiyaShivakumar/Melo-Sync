@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         *{
@@ -101,7 +101,20 @@
             font-family: cursive;
             cursor: pointer;
         }
-        #song-list {
+        .likedSongsBtn{
+            margin: 30px;
+            background-color: #1DB954;
+            color: #191818;
+            font-size: 20px;
+            border: none;
+            border-radius: 20px;
+            text-align: center;
+            width: 170px;
+            height: 50px;
+            font-family: cursive;
+            cursor: pointer;
+        }
+        /* #song-list {
             width: 20%;
             margin: auto;
             margin-top: 100px;
@@ -116,40 +129,72 @@
             border-radius: 10px;
             margin-bottom: 20px;
             padding: 10px;
-        }
+        } */
          img {
-            width: 80px;
-            height: 80px;
+            width: 70%;
+            height: 60%;
             border-radius: 10px;
-        }
-        .song-details {
+         }
+        /* .song-details {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
             width: 70vw;
             padding: 20px;
             padding-right: 60px;
-        }
+        } */
         strong {
-            font-size: 18px;
-            color: #fff;
+            font-size: 22px;
+            color: black;
+            padding: 20px;
         }
         audio {
             width: 80%;
+            position: relative;
+            left: -25px;
             font-size: 16px;
             color: #1DB954;
         }
         audio::-webkit-media-controls-panel {
             background: #d1def1c8;
         }
-        .parent{
+     
+        #song-list{
             display: flex;
-            width: 100vw;
-            height: 100vh;
+            flex-direction: row;
+            flex-wrap: wrap;
+            flex-basis: 33.33%;
+            list-style: none;
+            margin-top: 15%;
+            margin-left: 40px;
+        }
+        .card-container{
+            width: 500px;
+            height: 550px;
+            padding: 50px;
+        }
+        .card{
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            background-color: rgba(213, 205, 205,0.3);
+            border-radius: 20px;
         }
-        .songImage{}
+        #iconLike{
+            font-size: 35px;
+            position: absolute;
+            left: 88%;
+            top: 10px;
+        }
+        #next{
+            position: absolute;
+            bottom: 30px;
+            right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -162,15 +207,16 @@
                 <i class='bx bx-search-alt-2' id="search"></i>
             </a>
         </div>
+        <form action="likedSongs.html"><input type="submit" class="likedSongsBtn" value="Liked Songs"></form>
         <div class="right-name">
             <h4 class="user-name"></h4>
         </div>
         <form action="signin.html"><input type="submit" class="logout" value="Logout"></form>
         
     </header>
-    <div id="parent">
+   
     <div id="song-list">
-    </div></div>
+    </div>
 </body>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
@@ -189,6 +235,7 @@
     const auth = getAuth();
     const db = getFirestore(app);
     const userName = document.querySelector('.user-name');
+    let userLikedSongIds;
     onAuthStateChanged(auth, (user) => {
     if (user) {
     const userId = user.uid;
@@ -199,12 +246,12 @@
                     userName.innerText = `Hello, ${name}`;
                 }
     })
+    
   }
 });
     const storage = getStorage();
     const songsCollection = collection(db, 'songs');
     displaySongs();
-    displayLikedSongs();
     const songList = document.getElementById('song-list');
     const searchInput = document.getElementById('search-input');
     function clearSongList() {
@@ -224,19 +271,19 @@
                         songFound = true;
                         const songItem = document.createElement('li');
                         songItem.innerHTML = `
-                    <table>
-                        <tr>
-                            <td>
-                    <img src="${songData.imageUrl}" alt="Song Image"></td>
-                    <td><div class="song-details">
-                        <audio controls>
-                            <source src="${songData.audioUrl}" type="audio/mpeg">
-                            Your browser does not support the audio element.
-                        </audio>
-                        <i class='bx bxs-heart like-icon' data-song-id="${doc.id}"></i>
-                        </div></td>
-                        </tr></table>
-                        <strong>${songData.title}</strong>
+                        <div class="card-container">
+                        <div class="card">
+                            <i class='bx bxs-heart like-icon' data-song-id="${doc.id}" id="iconLike"></i>
+                             <img src="${songData.imageUrl}" alt="Song Image">
+                             <strong>${songData.title}</strong>
+                             <audio controls>
+                                <source src="${songData.audioUrl}" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                            <i class='bx bx-skip-next' id="next"></i>
+                        </div>
+
+                    </div>
                     `;
                     songList.appendChild(songItem);
                     }
@@ -247,7 +294,6 @@
                     displaySongs();
                 }
                 attachLikeEventListeners();
-                displayLikedSongs();
             });
     }
     function debounce(func, delay) {
@@ -261,7 +307,7 @@
         }, delay);
     };
     }
-    function attachLikeEventListeners() {
+    async function attachLikeEventListeners() {
         const likeIcons = document.querySelectorAll('.like-icon');
         likeIcons.forEach((icon) => {
             icon.addEventListener('click', async () => {
@@ -272,72 +318,82 @@
             const likedSongSnapshot = await getDoc(likedSongDoc);
 
             if (likedSongSnapshot.exists()) {
-                console.log('Song already liked');
+                 Swal.fire({
+                        icon: 'info',
+                        title: 'Song Already Liked',
+                        text: 'Click on the button Liked Songs to view it',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#1DB954'
+                    })
             } else {
+                const songData = await getDoc(doc(songsCollection, songId)).data();
                 await setDoc(likedSongDoc, {
                     likedAt: new Date(),
-                
+                    title: songData.title,
                 });
-
-                console.log('Song liked');
+                Swal.fire({
+                        icon: 'success',
+                        title: 'Song Liked',
+                        text: 'Added to your Wishlist successfully',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#1DB954'
+                    })
             }
         });
         
     });
 
     }
-    let userLikedSongIds;
-    async function displayLikedSongs() {
-        onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            const likedSongIds = await getLikedSongIds(user.uid);
-            userLikedSongIds = await getLikedSongIds(user.uid); 
-            clearSongList();
-            const likedSongsHeading = document.createElement('h2');
-            likedSongsHeading.textContent = 'Liked Songs';
-            songList.appendChild(likedSongsHeading);
-            likedSongIds.forEach(async (songId) => {
-                const likedSongDoc = await getDoc(doc(songsCollection, songId));
-                const songData = likedSongDoc.data();
-                const songItem = document.createElement('li');
-                songItem.innerHTML = `
-                    <table>
-                        <tr class="container">
-                            <td class="songImage">
-                                <img src="${songData.imageUrl}" alt="Song Image">
-                            </td>
-                            <td>
-                                <div class="song-details">
-                                    <audio controls>
-                                        <source src="${songData.audioUrl}" type="audio/mpeg">
-                                        Your browser does not support the audio element.
-                                    </audio>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                    <strong>${songData.title}</strong>
-                `;
-                songList.appendChild(songItem);
-            });
-            attachLikeEventListeners();
-            // const separator = document.createElement('hr');
-            // songList.appendChild(separator);
-            // const topSongsHeading = document.createElement('h2');
-            // topSongsHeading.textContent = 'Top Songs';
-            // songList.appendChild(topSongsHeading);
-            // displaySongs();
-            } else {
-                console.error('User is not authenticated.');
-            }
-        });
-    }
+    
+    // async function displayLikedSongs() {
+    //     onAuthStateChanged(auth, async (user) => {
+    //     if (user) {
+    //         const likedSongIds = await getLikedSongIds(user.uid);
+    //         userLikedSongIds = await getLikedSongIds(user.uid); 
+    //         clearSongList();
+    //         const likedSongsHeading = document.createElement('h2');
+    //         likedSongsHeading.textContent = 'Liked Songs';
+    //         songList.appendChild(likedSongsHeading);
+    //         likedSongIds.forEach(async (songId) => {
+    //             const likedSongDoc = await getDoc(doc(songsCollection, songId));
+    //             const songData = likedSongDoc.data();
+    //             const songItem = document.createElement('li');
+    //             songItem.innerHTML = `
+    //                 <table>
+    //                     <tr class="container">
+    //                         <td class="songImage">
+    //                             <img src="${songData.imageUrl}" alt="Song Image">
+    //                         </td>
+    //                         <td>
+    //                             <div class="song-details">
+    //                                 <audio controls>
+    //                                     <source src="${songData.audioUrl}" type="audio/mpeg">
+    //                                     Your browser does not support the audio element.
+    //                                 </audio>
+    //                             </div>
+    //                         </td>
+    //                     </tr>
+    //                 </table>
+    //                 <strong>${songData.title}</strong>
+    //             `;
+    //             songList.appendChild(songItem);
+    //         });
+    //         const otherSongsHeading = document.createElement('h2');
+    //                 otherSongsHeading.textContent = 'Other Songs';
+    //                 songList.appendChild(otherSongsHeading);
+    //                 displaySongs();
+    //                 attachLikeEventListeners();
+    //             } else {
+    //                 console.error('User is not authenticated.');
+    //             }
+           
+    //     });
+    // }
+ 
 
     async function getLikedSongIds(userId) {
         const likedSongsRef = collection(db, 'likedSongs', userId, 'songs');
         const querySnapshot = await getDocs(likedSongsRef);
-
-        // Extract the song IDs from the query snapshot
         const likedSongIds = [];
         querySnapshot.forEach((doc) => {
             likedSongIds.push(doc.id);
@@ -354,7 +410,6 @@
             displaySearchResults(searchTerm);
         } else{
             clearSongList();
-            // displayLikedSongs();
             displaySongs();
         }
         }, 300));
@@ -366,19 +421,21 @@
                     if (!isSongLiked(songData, userLikedSongIds)) {
                     const songItem = document.createElement('li');
                         songItem.innerHTML = `
-                    <table>
-                        <tr>
-                            <td>
-                    <img src="${songData.imageUrl}" alt="Song Image"></td>
-                    <td><div class="song-details">
-                        <audio controls>
-                            <source src="${songData.audioUrl}" type="audio/mpeg">
-                            Your browser does not support the audio element.
-                        </audio>
-                        <i class='bx bxs-heart like-icon' data-song-id="${doc.id}"></i>
-                        </div></td>
-                        </tr></table>
-                        <strong>${songData.title}</strong>
+                    
+                    <div class="card-container">
+                        <div class="card">
+                            <i class='bx bxs-heart like-icon' data-song-id="${doc.id}" id="iconLike"></i>
+                             <img src="${songData.imageUrl}" alt="Song Image">
+                             <strong>${songData.title}</strong>
+                             <audio controls>
+                                <source src="${songData.audioUrl}" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                            <i class='bx bx-skip-next' id="next"></i>
+                        </div>
+
+                    </div>
+            
                     `;
                     songList.appendChild(songItem);
                     }

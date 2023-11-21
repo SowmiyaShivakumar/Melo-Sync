@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Melo Sync</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+         *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+           
+        }
+        body{
+            background: #080b10;
+            color: #fff;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 3%;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+        i{
+            font-size: 50px;
+            color: #1DB954;
+        }
+        .logo{
+            flex: 1;
+            font-family: cursive ;
+            font-size: 30px;
+            color: #898686;
+            text-decoration: none;
+            font-weight: 600; 
+            pointer-events: none;
+        }
+        #search{
+            font-size: 30px;
+        }
+        .box{
+            margin-right: 5%;
+            height: 50px;
+            display: flex;
+            cursor: pointer;
+            padding: 10px 20px;
+            background: #2f3640;
+            border-radius: 30px;
+            align-items: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .box:hover input{
+            width: 400px;
+        }
+        .box input{
+            width: 0;
+            outline: none;
+            border: none;
+            font-weight: 500;
+            transition: 0.8s;
+            background: transparent;
+            font-family: cursive ;
+            color: #fff;
+        }
+        .box input::placeholder{
+            color: #fff;
+        }
+        .box a .bx{
+            color: #1DB954;
+            font-size: 18px;
+        }
+        .right-name{
+            font-size: 30px;
+            margin-right: 26px;
+        }
+        .user-name{
+            color: #898686;
+        }
+        .logout{
+            background-color: #1DB954;
+            color: #191818;
+            font-size: 20px;
+            border: none;
+            border-radius: 20px;
+            text-align: center;
+            width: 100px;
+            height: 50px;
+            font-family: cursive;
+            cursor: pointer;
+        }
+        img {
+            width: 70%;
+            height: 60%;
+            border-radius: 10px;
+        }
+         strong {
+            font-size: 22px;
+            color: black;
+            padding: 20px;
+        }
+        audio {
+            width: 80%;
+            position: relative;
+            left: -25px;
+            font-size: 16px;
+            color: #1DB954;
+        }
+        audio::-webkit-media-controls-panel {
+            background: #d1def1c8;
+        }
+     
+        #song-list{
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            flex-basis: 33.33%;
+            list-style: none;
+            margin-top: 15%;
+            margin-left: 40px;
+        }
+        .card-container{
+            width: 500px;
+            height: 550px;
+            padding: 50px;
+        }
+        .card{
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(213, 205, 205,0.3);
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <i class='bx bxs-music bx-tada bx-rotate-90' ></i>&nbsp;&nbsp;&nbsp;&nbsp;
+        <a href="#" class="logo">Melo Sync</a>
+        <div class="box">
+            <input type="text" placeholder="Search Music.." id="search-input" >
+            <a href="#">
+                <i class='bx bx-search-alt-2' id="search"></i>
+            </a>
+        </div>
+        
+        <div class="right-name">
+            <h4 class="user-name"></h4>
+        </div>
+        <form action="signin.html"><input type="submit" class="logout" value="Logout"></form>
+        
+    </header>
+   
+    <div id="song-list">
+        
+    </div>
+</body>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
+    import { getFirestore, collection, doc, onSnapshot, getDoc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js";
+    import { getAuth , onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-auth.js";
+    import { getStorage, ref, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-storage.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyBmybKB-IkLzdae0EfGdZhRD9Kfry-E2xY",
+      authDomain: "memo-sync.firebaseapp.com",
+      projectId: "memo-sync",
+      storageBucket: "memo-sync.appspot.com",
+      messagingSenderId: "879370220022",
+      appId: "1:879370220022:web:54026fadf5fe54177997d7"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const db = getFirestore(app);
+    const likedSongs = document.getElementById('song-list');
+    const user = auth.currentUser;
+        if (user) {
+            const userId = user.uid;
+            const likedSongsRef = collection(db, 'likedSongs', userId, 'songs');
+            onSnapshot(likedSongsRef, (querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                   
+                        const songData = doc.data();
+                        const songItem = document.createElement('li');
+                        songItem.innerHTML = `
+                        <div class="card-container">
+                        <div class="card">
+                            <i class='bx bxs-heart like-icon' data-song-id="${doc.id}" id="iconLike"></i>
+                             <img src="${songData.imageUrl}" alt="Song Image">
+                             <strong>${songData.title}</strong>
+                             <audio controls>
+                                <source src="${songData.audioUrl}" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                            <i class='bx bx-skip-next' id="next"></i>
+                        </div>
+                    </div>
+                        `;
+                        likedSongs.appendChild(songItem);
+                });
+                    })
+                
+                .catch((error) => {
+                    console.error('Error getting liked songs:', error);
+                });
+        } 
+</script>
+</html>
