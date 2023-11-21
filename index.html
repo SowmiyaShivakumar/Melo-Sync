@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Melo Sync</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: cursive;
+        }
+        body{
+            background-image:linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.5)),url('https://4.bp.blogspot.com/-EQtkP6jXajU/WG1ziw-oZeI/AAAAAAAAADE/gI3MidfOs60UMCiDJUbFQba3iQhda3OVgCLcB/s1600/-Music.png');
+            background-size: 100% 183%;
+            background-repeat: no-repeat;
+            width: 100%;
+            /* height: 100vh; */
+        }
+        h1{
+            text-align: center;
+            font-size: 60px;
+            margin-top: 180px;
+            color: #fff;
+            font-weight: 700;
+            /* background: linear-gradient( 45deg, #f32170,  #ff6b08, #cf23cf, #eedd44);  */
+        --webkit-text-fill-color: transparent; 
+        --webkit-background-clip: text; 
+
+        }
+        h2{
+            text-align: center;
+            font-size: 40px;
+            margin-top: 20px;
+            font-weight: 100;
+            color: #a7c957;
+
+        }
+        .buttons{
+            margin-top: 30px;
+        } 
+        .btn{
+            position: relative;
+            width: 150px;
+            height: 48px;
+            margin-top: 22px;
+            margin-left: 40%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: 400;
+            color: #fff;
+            border-radius: 40px;
+            text-decoration: none;
+            letter-spacing: 1px;
+            text-align: center;
+            z-index: 1;
+            opacity: 0;
+            cursor: pointer;
+            animation: slideTop 1s ease forwards;
+            animation-delay: 0.15s;
+            border: none;
+        }
+        .btn1{
+            position: relative;
+            width: 150px;
+            height: 48px;
+            margin-top: 22px;
+            margin-right: 40%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: 400;
+            color: #fff;
+            border-radius: 40px;
+            text-decoration: none;
+            text-align: center;
+            letter-spacing: 1px;
+            cursor: pointer;
+            z-index: 1;
+            opacity: 0;
+            animation: slideTop 1s ease forwards;
+            animation-delay: 0.15s;
+            border: none;
+        }
+        .btn::before,.btn1::before{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            inset: 0;
+            background: linear-gradient(45deg,#f06,rgb(46, 65, 163),#f06);
+            z-index: -1;
+            border-radius: 40px;
+            background-size: 200%;
+            background-position: 0 0;
+            filter: blur(5px);
+            transition: 0.5s ease;
+        }
+        .btn:hover::before,.btn1:hover::before{
+            background-position: 100% 0;
+        }
+        .btn::after,.btn1::after{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            inset: 0;
+            background: linear-gradient(45deg,#f06,rgb(46, 65, 163),#f06);
+            z-index: -1;
+            border-radius: 40px;
+            background-size: 200%;
+            background-position: 0 0;
+            transition: 0.5s ease;
+        }
+        .btn:hover::after,.btn1:hover::after{
+            background-position: 100% 0;
+        }
+        @keyframes slideTop {
+            0%{
+                opacity: 0;
+                transform: translateY(100px);
+            }
+            100%{
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        /* .carousel { 
+    position: relative; 
+    width: 270px; 
+    height: 160px; 
+    overflow: hidden; 
+    background-color: #cdcdcd; 
+} 
+  
+.carousel-item .slide-image { 
+    width: 270px; 
+    height: 160px; 
+    background-size: cover; 
+    background-repeat: no-repeat; 
+} 
+  
+.carousel-item { 
+    position: absolute; 
+    width: 100%; 
+    height: 270px; 
+    border: none; 
+    top: 0; 
+    left: 100%; 
+} 
+  
+.carousel-item.active { 
+    left: 0; 
+    transition: all 0.3s ease-out; 
+} 
+  
+.carousel-item div { 
+    height: 100%; 
+} 
+  
+.red { 
+    background-color: red; 
+} 
+  
+.green { 
+    background-color: green; 
+} 
+  
+.yellow { 
+    background-color: yellow; 
+} 
+  
+.violet { 
+    background-color: violet; 
+} */
+    </style>
+</head>
+<body>
+    <!-- <div class="carousel"> 
+        <div class="carousel-item"> 
+            <div class="slide-image"
+                style="background-image:  
+url('https://media.geeksforgeeks.org/img-practice/banner/mern-full-stack-development-classroom-thumbnail.png?v=19625');"> 
+            </div> 
+        </div> 
+        <div class="carousel-item"> 
+            <div class="slide-image"
+                style="background-image:  
+url('https://media.geeksforgeeks.org/img-practice/banner/dsa-to-development-coding-guide-thumbnail.png?v=19625');"> 
+            </div> 
+        </div> 
+        <div class="carousel-item"> 
+            <div class="slide-image"
+                style="background-image:  
+url('https://media.geeksforgeeks.org/img-practice/banner/geeks-classes-live-thumbnail.png?v=19625');"> 
+            </div> 
+        </div> 
+        <div class="carousel-item"> 
+            <div class="slide-image"
+                style="background-image:  
+url('https://media.geeksforgeeks.org/img-practice/banner/gate-crash-course-2024-thumbnail.png?v=19625');"> 
+            </div> 
+        </div> 
+    </div> 
+   -->
+    <h1>Melo Sync</h1>
+    <h2>Synchronize emotions through a symphony of sounds</h2>
+    <div class="buttons">
+        <button type="submit" class="btn"><a href="signin.html" style="text-decoration: none; color: #fff;" >Sign-In</a></button>&nbsp;&nbsp;&nbsp;
+        <button type="submit" class="btn1"><a href="signup.html" style="text-decoration: none; color: #fff;" >Sign-Up</a></button>
+    </div>
+</body>
+<!-- <script>
+    window.onload = function () { 
+    let slides =  
+        document.getElementsByClassName('carousel-item'); 
+  
+    function addActive(slide) { 
+        slide.classList.add('active'); 
+    } 
+  
+    function removeActive(slide) { 
+        slide.classList.remove('active'); 
+    } 
+  
+    addActive(slides[0]); 
+    setInterval(function () { 
+        for (let i = 0; i < slides.length; i++) { 
+            if (i + 1 == slides.length) { 
+                addActive(slides[0]); 
+                setTimeout(removeActive, 350, slides[i]); 
+                break; 
+            } 
+            if (slides[i].classList.contains('active')) { 
+                setTimeout(removeActive, 350, slides[i]); 
+                addActive(slides[i + 1]); 
+                break; 
+            } 
+        } 
+    }, 1500); 
+};
+</script> -->
+</html>

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+           
+        }
+        body{
+            background: #080b10;
+            color: #fff;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 3%;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+        i{
+            font-size: 50px;
+            color: #1DB954;
+        }
+        .logo{
+            flex: 1;
+            font-family: cursive ;
+            font-size: 30px;
+            color: #898686;
+            text-decoration: none;
+            font-weight: 600; 
+            pointer-events: none;
+        }
+        #search{
+            font-size: 30px;
+        }
+        .box{
+            margin-right: 5%;
+            height: 50px;
+            display: flex;
+            cursor: pointer;
+            padding: 10px 20px;
+            background: #2f3640;
+            border-radius: 30px;
+            align-items: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .box:hover input{
+            width: 400px;
+        }
+        .box input{
+            width: 0;
+            outline: none;
+            border: none;
+            font-weight: 500;
+            transition: 0.8s;
+            background: transparent;
+            font-family: cursive ;
+            color: #fff;
+        }
+        .box input::placeholder{
+            color: #fff;
+        }
+        .box a .bx{
+            color: #1DB954;
+            font-size: 18px;
+        }
+        .right-name{
+            font-size: 30px;
+            margin-right: 26px;
+        }
+        .user-name{
+            color: #898686;
+        }
+        .logout{
+            background-color: #1DB954;
+            color: #191818;
+            font-size: 20px;
+            border: none;
+            border-radius: 20px;
+            text-align: center;
+            width: 100px;
+            height: 50px;
+            font-family: cursive;
+            cursor: pointer;
+        }
+        #song-list {
+            width: 20%;
+            margin: auto;
+            margin-top: 100px;
+            padding: 20px;
+            list-style-type: none;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        } 
+        .song-item {
+            background: #2f3640;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+         img {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+        }
+        .song-details {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 70vw;
+            padding: 20px;
+            padding-right: 60px;
+        }
+        strong {
+            font-size: 18px;
+            color: #fff;
+        }
+        audio {
+            width: 80%;
+            font-size: 16px;
+            color: #1DB954;
+        }
+        audio::-webkit-media-controls-panel {
+            background: #d1def1c8;
+        }
+        .parent{
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            align-items: center;
+            justify-content: center;
+        }
+        .songImage{}
+    </style>
+</head>
+<body>
+    <header class="header">
+        <i class='bx bxs-music bx-tada bx-rotate-90' ></i>&nbsp;&nbsp;&nbsp;&nbsp;
+        <a href="#" class="logo">Melo Sync</a>
+        <div class="box">
+            <input type="text" placeholder="Search Music.." id="search-input" >
+            <a href="#">
+                <i class='bx bx-search-alt-2' id="search"></i>
+            </a>
+        </div>
+        <div class="right-name">
+            <h4 class="user-name"></h4>
+        </div>
+        <form action="signin.html"><input type="submit" class="logout" value="Logout"></form>
+        
+    </header>
+    <div id="parent">
+    <div id="song-list">
+    </div></div>
+</body>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
+    import { getFirestore, collection, doc, onSnapshot, getDoc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js";
+    import { getAuth , onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-auth.js";
+    import { getStorage, ref, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-storage.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyBmybKB-IkLzdae0EfGdZhRD9Kfry-E2xY",
+      authDomain: "memo-sync.firebaseapp.com",
+      projectId: "memo-sync",
+      storageBucket: "memo-sync.appspot.com",
+      messagingSenderId: "879370220022",
+      appId: "1:879370220022:web:54026fadf5fe54177997d7"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const db = getFirestore(app);
+    const userName = document.querySelector('.user-name');
+    onAuthStateChanged(auth, (user) => {
+    if (user) {
+    const userId = user.uid;
+    const usersRef = collection(db, 'users');
+        onSnapshot(doc(usersRef, user.uid), (doc) => {
+                if (doc.exists()) {
+                    const name = doc.data().name;
+                    userName.innerText = `Hello, ${name}`;
+                }
+    })
+  }
+});
+    const storage = getStorage();
+    const songsCollection = collection(db, 'songs');
+    displaySongs();
+    displayLikedSongs();
+    const songList = document.getElementById('song-list');
+    const searchInput = document.getElementById('search-input');
+    function clearSongList() {
+        songList.innerHTML = '';
+    }
+    function capitalizeFirstLetter(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+    function displaySearchResults(query) {
+        clearSongList();
+        const capitalizedQuery = capitalizeFirstLetter(query.toLowerCase());
+        onSnapshot(songsCollection, (querySnapshot) => {
+            let songFound = false;
+                querySnapshot.forEach((doc) => {
+                    const songData = doc.data();
+                    if(songData.title.startsWith(capitalizedQuery)){
+                        songFound = true;
+                        const songItem = document.createElement('li');
+                        songItem.innerHTML = `
+                    <table>
+                        <tr>
+                            <td>
+                    <img src="${songData.imageUrl}" alt="Song Image"></td>
+                    <td><div class="song-details">
+                        <audio controls>
+                            <source src="${songData.audioUrl}" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                        <i class='bx bxs-heart like-icon' data-song-id="${doc.id}"></i>
+                        </div></td>
+                        </tr></table>
+                        <strong>${songData.title}</strong>
+                    `;
+                    songList.appendChild(songItem);
+                    }
+                    
+                });
+                if (!songFound) {
+                    alert("No song found");
+                    displaySongs();
+                }
+                attachLikeEventListeners();
+                displayLikedSongs();
+            });
+    }
+    function debounce(func, delay) {
+        let timeout;
+        return function () {
+        const context = this;
+        const args = arguments;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            func.apply(context, args);
+        }, delay);
+    };
+    }
+    function attachLikeEventListeners() {
+        const likeIcons = document.querySelectorAll('.like-icon');
+        likeIcons.forEach((icon) => {
+            icon.addEventListener('click', async () => {
+            const songId = icon.getAttribute('data-song-id');
+            const userId = auth.currentUser.uid;
+            const likedSongsRef = collection(db, 'likedSongs', userId, 'songs');
+            const likedSongDoc = doc(likedSongsRef, songId);
+            const likedSongSnapshot = await getDoc(likedSongDoc);
+
+            if (likedSongSnapshot.exists()) {
+                console.log('Song already liked');
+            } else {
+                await setDoc(likedSongDoc, {
+                    likedAt: new Date(),
+                
+                });
+
+                console.log('Song liked');
+            }
+        });
+        
+    });
+
+    }
+    let userLikedSongIds;
+    async function displayLikedSongs() {
+        onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            const likedSongIds = await getLikedSongIds(user.uid);
+            userLikedSongIds = await getLikedSongIds(user.uid); 
+            clearSongList();
+            const likedSongsHeading = document.createElement('h2');
+            likedSongsHeading.textContent = 'Liked Songs';
+            songList.appendChild(likedSongsHeading);
+            likedSongIds.forEach(async (songId) => {
+                const likedSongDoc = await getDoc(doc(songsCollection, songId));
+                const songData = likedSongDoc.data();
+                const songItem = document.createElement('li');
+                songItem.innerHTML = `
+                    <table>
+                        <tr class="container">
+                            <td class="songImage">
+                                <img src="${songData.imageUrl}" alt="Song Image">
+                            </td>
+                            <td>
+                                <div class="song-details">
+                                    <audio controls>
+                                        <source src="${songData.audioUrl}" type="audio/mpeg">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    <strong>${songData.title}</strong>
+                `;
+                songList.appendChild(songItem);
+            });
+            attachLikeEventListeners();
+            // const separator = document.createElement('hr');
+            // songList.appendChild(separator);
+            // const topSongsHeading = document.createElement('h2');
+            // topSongsHeading.textContent = 'Top Songs';
+            // songList.appendChild(topSongsHeading);
+            // displaySongs();
+            } else {
+                console.error('User is not authenticated.');
+            }
+        });
+    }
+
+    async function getLikedSongIds(userId) {
+        const likedSongsRef = collection(db, 'likedSongs', userId, 'songs');
+        const querySnapshot = await getDocs(likedSongsRef);
+
+        // Extract the song IDs from the query snapshot
+        const likedSongIds = [];
+        querySnapshot.forEach((doc) => {
+            likedSongIds.push(doc.id);
+        });
+        console.log('Liked Song IDs:', likedSongIds);
+        return likedSongIds;
+    }
+
+    searchInput.addEventListener('input', debounce((event) => {
+        const searchTerm = event.target.value;
+        console.log(searchTerm);
+        if (searchTerm !== '') {
+            console.log("1")
+            displaySearchResults(searchTerm);
+        } else{
+            clearSongList();
+            // displayLikedSongs();
+            displaySongs();
+        }
+        }, 300));
+    function displaySongs() {
+        onSnapshot(songsCollection, (querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    const songData = doc.data();
+                    console.log("Successful");
+                    if (!isSongLiked(songData, userLikedSongIds)) {
+                    const songItem = document.createElement('li');
+                        songItem.innerHTML = `
+                    <table>
+                        <tr>
+                            <td>
+                    <img src="${songData.imageUrl}" alt="Song Image"></td>
+                    <td><div class="song-details">
+                        <audio controls>
+                            <source src="${songData.audioUrl}" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                        <i class='bx bxs-heart like-icon' data-song-id="${doc.id}"></i>
+                        </div></td>
+                        </tr></table>
+                        <strong>${songData.title}</strong>
+                    `;
+                    songList.appendChild(songItem);
+                    }
+                });
+                attachLikeEventListeners();
+            
+            });
+        
+    }
+    function isSongLiked(songData, userLikedSongIds) {
+        return userLikedSongIds && userLikedSongIds.includes(songData.id);
+        
+    }
+</script>
+</html>
