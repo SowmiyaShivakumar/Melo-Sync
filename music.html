@@ -207,7 +207,7 @@
                 <i class='bx bx-search-alt-2' id="search"></i>
             </a>
         </div>
-        <form action="likedSongs.html"><input type="submit" class="likedSongsBtn" value="Liked Songs"></form>
+        <form action="likedSongs.html"><input type="submit" id="liked-songs-btn" class="likedSongsBtn" value="Liked Songs"></form>
         <div class="right-name">
             <h4 class="user-name"></h4>
         </div>
@@ -216,6 +216,7 @@
     </header>
    
     <div id="song-list">
+        
     </div>
 </body>
 <script type="module">
@@ -231,6 +232,7 @@
       messagingSenderId: "879370220022",
       appId: "1:879370220022:web:54026fadf5fe54177997d7"
     };
+    // let currentSongIndex = 0;
     const app = initializeApp(firebaseConfig);
     const auth = getAuth();
     const db = getFirestore(app);
@@ -326,10 +328,10 @@
                         confirmButtonColor: '#1DB954'
                     })
             } else {
-                const songData = await getDoc(doc(songsCollection, songId)).data();
+                
                 await setDoc(likedSongDoc, {
                     likedAt: new Date(),
-                    title: songData.title,
+                    
                 });
                 Swal.fire({
                         icon: 'success',
@@ -342,55 +344,7 @@
         });
         
     });
-
     }
-    
-    // async function displayLikedSongs() {
-    //     onAuthStateChanged(auth, async (user) => {
-    //     if (user) {
-    //         const likedSongIds = await getLikedSongIds(user.uid);
-    //         userLikedSongIds = await getLikedSongIds(user.uid); 
-    //         clearSongList();
-    //         const likedSongsHeading = document.createElement('h2');
-    //         likedSongsHeading.textContent = 'Liked Songs';
-    //         songList.appendChild(likedSongsHeading);
-    //         likedSongIds.forEach(async (songId) => {
-    //             const likedSongDoc = await getDoc(doc(songsCollection, songId));
-    //             const songData = likedSongDoc.data();
-    //             const songItem = document.createElement('li');
-    //             songItem.innerHTML = `
-    //                 <table>
-    //                     <tr class="container">
-    //                         <td class="songImage">
-    //                             <img src="${songData.imageUrl}" alt="Song Image">
-    //                         </td>
-    //                         <td>
-    //                             <div class="song-details">
-    //                                 <audio controls>
-    //                                     <source src="${songData.audioUrl}" type="audio/mpeg">
-    //                                     Your browser does not support the audio element.
-    //                                 </audio>
-    //                             </div>
-    //                         </td>
-    //                     </tr>
-    //                 </table>
-    //                 <strong>${songData.title}</strong>
-    //             `;
-    //             songList.appendChild(songItem);
-    //         });
-    //         const otherSongsHeading = document.createElement('h2');
-    //                 otherSongsHeading.textContent = 'Other Songs';
-    //                 songList.appendChild(otherSongsHeading);
-    //                 displaySongs();
-    //                 attachLikeEventListeners();
-    //             } else {
-    //                 console.error('User is not authenticated.');
-    //             }
-           
-    //     });
-    // }
- 
-
     async function getLikedSongIds(userId) {
         const likedSongsRef = collection(db, 'likedSongs', userId, 'songs');
         const querySnapshot = await getDocs(likedSongsRef);
@@ -448,53 +402,7 @@
         return userLikedSongIds && userLikedSongIds.includes(songData.id);
         
     }
-    document.addEventListener('DOMContentLoaded', () => {
-        // Your existing code
-
-        // New function to get song IDs in order
-        async function getSongIdsInOrder() {
-            const querySnapshot = await getDocs(songsCollection);
-            const songIds = [];
-            querySnapshot.forEach((doc) => {
-                songIds.push(doc.id);
-            });
-            return songIds;
-        }
-
-        // Variable to keep track of the current song index
-        let currentSongIndex = 0;
-
-        // Event listener for the "Next" icon
-        document.addEventListener('click', async (e) => {
-            if (e.target.id === 'next') {
-                const songIdsInOrder = await getSongIdsInOrder();
-                currentSongIndex = (currentSongIndex + 1) % songIdsInOrder.length;
-                const nextSongId = songIdsInOrder[currentSongIndex];
-                const nextSongDoc = await getDoc(doc(songsCollection, nextSongId));
-                const nextSongData = nextSongDoc.data();
-
-                clearSongList();
-                const songItem = document.createElement('li');
-                songItem.innerHTML = `
-                    <div class="card-container">
-                        <div class="card">
-                            <i class='bx bxs-heart like-icon' data-song-id="${nextSongId}" id="iconLike"></i>
-                            <img src="${nextSongData.imageUrl}" alt="Song Image">
-                            <strong>${nextSongData.title}</strong>
-                            <audio controls>
-                                <source src="${nextSongData.audioUrl}" type="audio/mpeg">
-                                Your browser does not support the audio element.
-                            </audio>
-                            <i class='bx bx-skip-next' id="next"></i>
-                        </div>
-                    </div>
-                `;
-                songList.appendChild(songItem);
-
-                // Update the currentSongIndex
-                currentSongIndex++;
-            }
-        });
-    });
+    //Stopping the old song when new song is played
+       
 </script>
 </html>

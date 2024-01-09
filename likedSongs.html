@@ -153,6 +153,18 @@
             left: 88%;
             top: 10px;
         }
+        #next{
+            position: absolute;
+            bottom: 30px;
+            right: 10px;
+        }
+        .right-name{
+            font-size: 30px;
+            margin-right: 26px;
+        }
+        .user-name{
+            color: #898686;
+        }
         </style>
 </head>
 <body>
@@ -177,12 +189,12 @@
 
 </body>
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
+   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
     import { getFirestore, collection, doc, onSnapshot, getDoc, setDoc, getDocs, query } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js";
     import { getAuth , onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-auth.js";
-    import { getStorage, ref, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-storage.js";
+    import { getStorage } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-storage.js";
     const firebaseConfig = {
-      apiKey: "AIzaSyBmybKB-IkLzdae0EfGdZhRD9Kfry-E2xY",
+        apiKey: "AIzaSyBmybKB-IkLzdae0EfGdZhRD9Kfry-E2xY",
       authDomain: "memo-sync.firebaseapp.com",
       projectId: "memo-sync",
       storageBucket: "memo-sync.appspot.com",
@@ -192,41 +204,57 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth();
     const db = getFirestore(app);
-    const storage = getStorage();
     const songList = document.getElementById('song-list');
-    const user = auth.currentUser;
+    const userName = document.querySelector('.user-name');
+    // const user = auth.currentUser;
+    onAuthStateChanged(auth, (user) => { 
         if (user) {
             const userId = user.uid;
+            const usersRef = collection(db, 'users');
+        onSnapshot(doc(usersRef, user.uid), (doc) => {
+                if (doc.exists()) {
+                    const name = doc.data().name;
+                    userName.innerText = ` ${name}'s Liked Songs`;
+                }
+    })
             const likedSongsRef = collection(db, 'likedSongs', userId, 'songs');
             const likedSongsQuery = query(likedSongsRef);
-            getDocs(likedSongsQuery)
-                .then((querySnapshot) => {
-                    likedSongList.innerHTML = '';
-                    querySnapshot.forEach((doc) => {
-                        const songData = doc.data();
-                        const songItem = document.createElement('li');
-                        songItem.innerHTML = `
-                        <div class="card-container">
-                        <div class="card">
-                            <i class='bx bxs-heart like-icon' data-song-id="${doc.id}" id="iconLike"></i>
-                             <img src="${songData.imageUrl}" alt="Song Image">
-                             <strong>${songData.title}</strong>
-                             <audio controls>
-                                <source src="${songData.audioUrl}" type="audio/mpeg">
-                                Your browser does not support the audio element.
-                            </audio>
-                            <i class='bx bx-skip-next' id="next"></i>
-                        </div>
+            onSnapshot(likedSongsQuery, async(querySnapshot) =>  {
+                    songList.innerHTML = '';
+                    for(const i of querySnapshot.docs)  {
+                        const likedSongId = i.id;
+                        try {
+                            const songDoc =  await getDoc(doc(db, 'songs', likedSongId));
+                            if(songDoc.exists()){
+                            const songData = songDoc.data();
 
-                    </div>
-                        `;
+                            const songItem = document.createElement('li');
+                            songItem.innerHTML = `
+                                <div class="card-container">
+                                    <div class="card">
+                                        <i class='bx bxs-heart like-icon' data-song-id="${likedSongId}" id="iconLike"></i>
+                                        <img src="${songData.imageUrl}" alt="Song Image">
+                                        <strong>${songData.title}</strong>
+                                        <audio controls>
+                                            <source src="${songData.audioUrl}" type="audio/mpeg">
+                                            Your browser does not support the audio element.
+                                        </audio>
+                                        <i class='bx bx-skip-next' id="next"></i>
+                                    </div>
+                                </div>
+                            `;
 
-                        songList.appendChild(songItem);
-                    });
-                })
-                .catch((error) => {
-                    console.error('Error getting liked songs:', error);
-                });
-        } 
+                            songList.appendChild(songItem);
+                        } 
+                    }
+                catch (error){
+                    // console.error('Error getting liked songs:', error);
+                }
+            }
+                   
+        });
+    }
+});
+     
 </script>
 </html>
