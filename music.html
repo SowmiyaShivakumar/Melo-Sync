@@ -232,7 +232,8 @@
       messagingSenderId: "879370220022",
       appId: "1:879370220022:web:54026fadf5fe54177997d7"
     };
-    // let currentSongIndex = 0;
+    let currentAudioElement = null;
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth();
     const db = getFirestore(app);
@@ -368,41 +369,43 @@
         }
         }, 300));
     function displaySongs() {
-        onSnapshot(songsCollection, (querySnapshot) => {
-                querySnapshot.forEach((doc) => {
-                    const songData = doc.data();
-                    console.log("Successful");
-                    if (!isSongLiked(songData, userLikedSongIds)) {
-                    const songItem = document.createElement('li');
-                        songItem.innerHTML = `
-                    <div class="card-container">
-                        <div class="card">
-                            <i class='bx bxs-heart like-icon' data-song-id="${doc.id}" id="iconLike"></i>
-                             <img src="${songData.imageUrl}" alt="Song Image">
-                             <strong>${songData.title}</strong>
-                             <audio controls>
-                                <source src="${songData.audioUrl}" type="audio/mpeg">
-                                Your browser does not support the audio element.
-                            </audio>
-                            <i class='bx bx-skip-next' id="next"></i>
-                        </div>
-
+    onSnapshot(songsCollection, (querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+            const songData = doc.data();
+            if (!isSongLiked(songData, userLikedSongIds)) {
+                const songItem = document.createElement('li');
+            songItem.innerHTML = `
+                <div class="card-container">
+                    <div class="card">
+                        <i class='bx bxs-heart like-icon' data-song-id="${doc.id}" id="iconLike"></i>
+                        <img src="${songData.imageUrl}" alt="Song Image">
+                        <strong>${songData.title}</strong>
+                        <audio controls id="audio-${doc.id}">
+                            <source src="${songData.audioUrl}" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                        <i class='bx bx-skip-next' id="next"></i>
                     </div>
-            
-                    `;
-                    songList.appendChild(songItem);
-                    }
-                });
-                attachLikeEventListeners();
-            
-            });
-        
-    }
+                </div>
+            `;
+            songList.appendChild(songItem);
+
+            const playButton = songItem.querySelector(`#audio-${doc.id}`);
+            playButton.addEventListener('play', () => {
+                if (currentAudioElement && currentAudioElement !== playButton) {
+                    currentAudioElement.pause();
+                }
+                currentAudioElement = playButton;
+            }); 
+        }
+    });
+        attachLikeEventListeners();
+    });
+}
     function isSongLiked(songData, userLikedSongIds) {
         return userLikedSongIds && userLikedSongIds.includes(songData.id);
         
     }
-    //Stopping the old song when new song is played
        
 </script>
 </html>
